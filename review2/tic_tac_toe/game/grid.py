@@ -1,13 +1,20 @@
+from . import errors
+
+
 class Grid:
     ALLOWED_SYMBOLS = ('X', 'O')
 
-    def __init__(self, dimension=3):
+    def __init__(self, dimension: int=3):
         self.dimension = dimension
-        self.grid = []
+        self.grid: list[list[str]] = []
 
         for _ in range(dimension):
             line = [' '] * dimension
             self.grid.append(line)
+
+    def __getitem__(self, rowcol: tuple[int, int]):
+        (r, c) = rowcol
+        return self.grid[r][c]
 
     def show(self):
         print()
@@ -16,19 +23,16 @@ class Grid:
             print(line)
         print()
 
-    def draw_symbol(self, symbol, line, column):
+    def draw_symbol(self, symbol: str, row: int, column: int
+                    ) -> None | errors.GameError:
         if symbol not in self.__class__.ALLOWED_SYMBOLS:
-            return {'ok': False,
-                    'msg': f'Símbolo inválido: {symbol}'}
+            return errors.InvalidSymbol(symbol)
 
-        for v in (line, column):
+        for v in (row, column):
             if not (0 <= v < self.dimension):
-                return {'ok': False,
-                        'msg': f'Valor inválido para linha/coluna: {v}'}
+                return errors.InvalidRowOrColumn(v)
 
-        if self.grid[line][column] != ' ':
-            return {'ok': False,
-                    'msg': f'Posição já preenchida: ({line},{column})'}
+        if self.grid[row][column] != ' ':
+            return errors.GridPositionAlreadyFilled((row, column))
 
-        self.grid[line][column] = symbol
-        return {'ok': True}
+        self.grid[row][column] = symbol
